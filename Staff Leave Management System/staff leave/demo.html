@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Leave Management System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+  /* Reset */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #5a4a8a, #2f2746);
+    min-height: 100vh;
+    color: #f0f0f5;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: #3b2a6d;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  }
+
+  header h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: #ffe066;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  nav ul li {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #d6caf7cc;
+  }
+
+  nav ul li:hover,
+  nav ul li.active {
+    background: #ffe066;
+    color: #3b2a6d;
+    box-shadow: 0 0 12px #f3d15aaa;
+    font-weight: 700;
+  }
+
+  /* Mobile menu button */
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    width: 28px;
+    height: 22px;
+    justify-content: space-between;
+  }
+
+  .menu-toggle span {
+    background: #ffe066;
+    height: 3.5px;
+    border-radius: 3px;
+    display: block;
+  }
+
+  /* Sidebar/Drawer for mobile */
+  @media (max-width: 600px) {
+    nav ul {
+      position: fixed;
+      top: 65px;
+      right: -100%;
+      width: 220px;
+      height: calc(100% - 65px);
+      background: #3b2a6ddd;
+      flex-direction: column;
+      padding: 1rem;
+      box-shadow: -3px 0 14px rgba(0,0,0,0.8);
+      transition: right 0.3s ease;
+      border-radius: 0 0 0 18px;
+      z-index: 99;
+    }
+    nav ul.open {
+      right: 0;
+    }
+    .menu-toggle {
+      display: flex;
+    }
+  }
+
+  main {
+    flex: 1;
+    padding: 1.5rem 2rem;
+    max-width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Page sections */
+  section {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  section.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  /* Cards styling */
+  .card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem 2.5rem;
+    border-radius: 18px;
+    box-shadow: 0 10px 35px rgb(255 224 102 / 0.36);
+    margin-bottom: 2rem;
+    backdrop-filter: saturate(180%) blur(15px);
+  }
+
+  h2 {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ffe066;
+    font-size: 1.75rem;
+    text-shadow: 0 0 5px #f3d15a,
+                 0 0 10px #f3d15a;
+  }
+
+  h3 {
+    color: #eac435;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  /* Dashboard summary grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .summary-item {
+    background: rgba(255,255,255,0.12);
+    padding: 1.3rem 1rem;
+    border-radius: 15px;
+    text-align: center;
+    user-select: none;
+    box-shadow: inset 0 0 20px #ffdf7c33;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .summary-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 24px #ffd442aa;
+  }
+
+  .summary-item span.number {
+    display: block;
+    font-weight: 800;
+    font-size: 2.7rem;
+    margin-bottom: 0.3rem;
+    color: #fff;
+    text-shadow: 0 0 6px #f3d15a, 0 0 12px #f3d15a;
+    letter-spacing: 2px;
+  }
+
+  /* Bar chart container */
+  .bar-chart-container {
+    background: rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    user-select: none;
+    box-shadow: inset 0 0 16px #ffdf7c33;
+  }
+  .bar-chart-label {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: #fff9c7;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 4px #f3d15a55;
+  }
+  .bar {
+    height: 26px;
+    background: #ffd442;
+    border-radius: 16px;
+    transition: width 0.5s ease;
+    box-shadow: 0 4px 18px rgba(255, 212, 66, 0.7);
+  }
+  .bar-bg {
+    background: rgba(255,255,255,0.3);
+    border-radius: 16px;
+    height: 26px;
+    width: 100%;
+  }
+
+  /* Form styles */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  label {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #ffe066cc;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    outline: none;
+    resize: vertical;
+    font-family: 'Inter', sans-serif;
+    background: rgba(255,255,255,0.16);
+    color: #fff;
+    transition: background-color 0.3s ease;
+    box-shadow: inset 0 0 6px #ffd742aa;
+  }
+
+  input[type="text"]::placeholder,
+  textarea::placeholder {
+    color: #dededeaa;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  select:focus,
+  textarea:focus {
+    background: rgba(255,255,255,0.35);
+    box-shadow: 0 0 12px #ffdb3cca;
+    color: #1e1e1e;
+  }
+
+  button {
+    background: #ffe066;
+    border: none;
+    padding: 0.85rem;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background-color 0.25s ease, box-shadow 0.3s ease;
+    color: #3b2a6d;
+    user-select: none;
+    box-shadow: 0 0 18px #ffdf7cbb;
+  }
+
+  button:hover:enabled {
+    background: #ffd942;
+    box-shadow: 0 0 32px #ffee6b;
+  }
+  button:disabled {
+    background: #bbb;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Leave Status & tables */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+    font-size: 1rem;
+    color: #bbb;
+  }
+
+  thead {
+    background: transparent;
+  }
+
+  th, td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    background: #3b2a6d33;
+    border-radius: 12px;
+    box-shadow: inset 0 0 4px #4c3b8aff;
+    vertical-align: middle;
+  }
+  th {
+    color: #ffed94dd;
+    font-weight: 700;
+  }
+  tbody tr:hover td {
+    background: #3b2a6dbb;
+    color: #fff;
+    cursor: default;
+  }
+
+  /* Status badges */
+  .status-pending {
+    background: #fbbf24aa;
+    color: #422006;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-shadow: 0 0 2px #ebc979;
+  }
+  .status-approved {
+    background: #34d399cc;
+    color: #064e3b;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-shadow: 0 0 2px #6dfaa4;
+  }
+  .status-rejected {
+    background: #f87171cc;
+    color: #7f1d1d;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-shadow: 0 0 2px #ff8181;
+  }
+
+  /* Approval buttons */
+  .btn-approve, .btn-reject {
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    user-select: none;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 6px #ffd846bb;
+  }
+  .btn-approve {
+    background: #34d399cc;
+    color: #064e3b;
+  }
+  .btn-approve:hover {
+    background: #25c381ee;
+  }
+  .btn-reject {
+    background: #f87171cc;
+    color: #7f1d1d;
+  }
+  .btn-reject:hover {
+    background: #ec5555ee;
+  }
+
+  /* Employee list */
+  .employee-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+  }
+  .employee-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 1.3rem 1.8rem;
+    flex: 1 1 220px;
+    box-shadow: 0 6px 22px rgba(255, 224, 102, 0.38);
+    transition: box-shadow 0.3s ease;
+  }
+  .employee-card:hover {
+    box-shadow: 0 12px 38px rgba(255, 224, 102, 0.58);
+  }
+
+  .employee-card strong {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 1.2rem;
+    color: #fff9c7;
+    text-shadow: 0 0 8px #f3d15a, 0 0 15px #f3d15a;
+    letter-spacing: 0.8px;
+  }
+
+  .employee-info {
+    font-size: 0.9rem;
+    color: #eedf7bcc;
+    line-height: 1.3;
+    margin-bottom: 0.8rem;
+  }
+
+  /* Employee leave record table */
+  .employee-leave-record {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    margin-top: 1.2rem;
+  }
+
+  .employee-leave-record th, .employee-leave-record td {
+    padding: 0.75rem 1rem;
+    background: #3b2a6d55;
+    color: #fff0bc;
+    font-weight: 600;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: inset 0 0 5px #fff8a0cc;
+  }
+
+  .employee-leave-record td {
+    font-weight: 400;
+    color: #fff;
+  }
+
+  /* Footer */
+  footer {
+    background: #3b2a6ddd;
+    color: #eee8cd;
+    text-align: center;
+    padding: 0.9rem 1rem;
+    font-size: 0.9rem;
+    user-select: none;
+    box-shadow: 0 -1px 10px rgba(0,0,0,0.8);
+  }
+
+  /* Scrollbar for main */
+  main::-webkit-scrollbar {
+    width: 8px;
+  }
+  main::-webkit-scrollbar-track {
+    background: #3b2a6d44;
+  }
+  main::-webkit-scrollbar-thumb {
+    background: #ffe066cc;
+    border-radius: 12px;
+  }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Leave Management</h1>
+  <nav>
+    <div class="menu-toggle" aria-label="Toggle menu" tabindex="0">
+      <span></span><span></span><span></span>
+    </div>
+    <ul id="nav-links">
+      <li data-section="dashboard" class="active" tabindex="0" aria-current="page">Dashboard</li>
+      <li data-section="apply" tabindex="0">Apply Leave</li>
+      <li data-section="status" tabindex="0">Leave Status</li>
+      <li data-section="approval" tabindex="0">Approval</li>
+      <li data-section="employees" tabindex="0">Employees</li>
+      <li data-section="leave-records" tabindex="0">Leave Records</li>
+      <li data-section="profile" tabindex="0">Profile</li>
+    </ul>
+  </nav>
+</header>
+<main>
+  <!-- Dashboard -->
+  <section id="dashboard" class="active" aria-label="Dashboard">
+    <h2>Dashboard</h2>
+    <div class="card dashboard-grid" aria-live="polite" aria-atomic="true">
+      <div class="summary-item" id="total-leaves-card" aria-describedby="totalLeavesDesc" tabindex="0">
+        <span class="number" id="totalLeaves">0</span>
+        Total Leaves Applied
+        <div id="totalLeavesDesc" class="sr-only">Number of leaves applied</div>
+      </div>
+      <div class="summary-item" id="approved-leaves-card" aria-describedby="approvedLeavesDesc" tabindex="0">
+        <span class="number" id="approvedLeaves">0</span>
+        Approved Leaves
+        <div id="approvedLeavesDesc" class="sr-only">Number of approved leaves</div>
+      </div>
+      <div class="summary-item" id="pending-leaves-card" aria-describedby="pendingLeavesDesc" tabindex="0">
+        <span class="number" id="pendingLeaves">0</span>
+        Pending Leaves
+        <div id="pendingLeavesDesc" class="sr-only">Number of pending leaves</div>
+      </div>
+      <div class="summary-item" id="rejected-leaves-card" aria-describedby="rejectedLeavesDesc" tabindex="0">
+        <span class="number" id="rejectedLeaves">0</span>
+        Rejected Leaves
+        <div id="rejectedLeavesDesc" class="sr-only">Number of rejected leaves</div>
+      </div>
+    </div>
+
+    <div class="card" aria-label="Employees on Leave Today" tabindex="0" aria-live="polite">
+      <h3>Employees on Leave Today</h3>
+      <div class="bar-chart-container" aria-label="Bar chart showing employees on leave status">
+        <div class="bar-chart-label">
+          <span>On Leave</span>
+          <span id="onLeaveCount">0</span>
+          <span id="onLeavePercent">0%</span>
+        </div>
+        <div class="bar-bg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" >
+          <div class="bar" id="onLeaveBar" style="width:0%;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apply Leave -->
+  <section id="apply" aria-label="Apply Leave Form">
+    <h2>Apply for Leave</h2>
+    <form id="leaveForm" aria-live="polite" novalidate>
+      <label for="selectEmployee">Select Employee</label>
+      <select id="selectEmployee" name="selectEmployee" required aria-required="true">
+        <option value="" disabled selected>Select employee</option>
+      </select>
+
+      <label for="leaveType">Leave Type</label>
+      <select id="leaveType" name="leaveType" required aria-required="true">
+        <option value="" disabled selected>Select leave type</option>
+        <option value="Casual Leave">Casual Leave</option>
+        <option value="Sick Leave">Sick Leave</option>
+        <option value="Paid Leave">Paid Leave</option>
+        <option value="Maternity Leave">Maternity Leave</option>
+        <option value="Bereavement Leave">Bereavement Leave</option>
+      </select>
+
+      <label for="startDate">Start Date</label>
+      <input type="date" id="startDate" name="startDate" required aria-required="true" min="" />
+
+      <label for="endDate">End Date</label>
+      <input type="date" id="endDate" name="endDate" required aria-required="true" min="" />
+
+      <label for="reason">Reason</label>
+      <textarea id="reason" name="reason" rows="3" placeholder="Describe the reason" required aria-required="true"></textarea>
+
+      <button type="submit">Submit Leave Application</button>
+    </form>
+  </section>
+
+  <!-- Leave Status -->
+  <section id="status" aria-label="Leave Status">
+    <h2>Leave Status</h2>
+    <div class="card" style="overflow-x:auto; max-height: 420px;">
+      <table aria-describedby="leaveStatusDesc" role="table" aria-label="All Leave Applications">
+        <thead>
+          <tr>
+            <th scope="col">Employee</th>
+            <th scope="col">Leave Type</th>
+            <th scope="col">From</th>
+            <th scope="col">To</th>
+            <th scope="col">Reason</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody id="leaveStatusBody" aria-live="polite" aria-atomic="true">
+          <!-- Leave rows inserted here -->
+        </tbody>
+      </table>
+      <div id="leaveStatusDesc" class="sr-only">List of leaves applied with their current status.</div>
+    </div>
+  </section>
+
+  <!-- Approval -->
+  <section id="approval" aria-label="Pending Leave Approvals">
+    <h2>Pending Leave Approvals</h2>
+    <div class="card" style="overflow-x:auto; max-height: 420px;">
+      <table aria-describedby="pendingApprovalsDesc" role="table" aria-label="Pending Leave Approvals">
+        <thead>
+          <tr>
+            <th scope="col">Employee</th>
+            <th scope="col">Leave Type</th>
+            <th scope="col">From</th>
+            <th scope="col">To</th>
+            <th scope="col">Reason</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pendingApprovalsBody" aria-live="polite" aria-atomic="true">
+          <!-- Pending leaves with actions -->
+        </tbody>
+      </table>
+      <div id="pendingApprovalsDesc" class="sr-only">Pending leaves to be approved or rejected.</div>
+    </div>
+  </section>
+
+  <!-- Employees -->
+  <section id="employees" aria-label="Employee Profiles">
+    <h2>Employees</h2>
+    <div class="card employee-list" id="employeeList" aria-live="polite" aria-atomic="true" tabindex="0">
+      <!-- Employee cards inserted here -->
+    </div>
+    <h3>Add New Employee</h3>
+    <form id="employeeForm" aria-live="polite" novalidate>
+      <label for="empName">Name</label>
+      <input type="text" id="empName" name="empName" placeholder="Employee name" required aria-required="true" />
+      <label for="empEmail">Email</label>
+      <input type="text" id="empEmail" name="empEmail" placeholder="Employee email" required aria-required="true" />
+      <label for="empRole">Role</label>
+      <input type="text" id="empRole" name="empRole" placeholder="Employee role" required aria-required="true" />
+      <label for="empQuota">Leave Quota (days)</label>
+      <input type="number" id="empQuota" name="empQuota" placeholder="Example: 20" min="0" required aria-required="true" />
+      <button type="submit">Add Employee</button>
+    </form>
+  </section>
+
+  <!-- Leave Records: Employee leave usage and balance -->
+  <section id="leave-records" aria-label="Employee Leave Records">
+    <h2>Employee Leave Records</h2>
+    <div class="card" style="overflow-x:auto; max-height: 480px;">
+      <table aria-describedby="leaveRecordsDesc" role="table" aria-label="Employee Leave Records Summary" class="employee-leave-record">
+        <thead>
+          <tr>
+            <th scope="col">Employee</th>
+            <th scope="col">Leave Quota (Days)</th>
+            <th scope="col">Leaves Taken (Days)</th>
+            <th scope="col">Leave Balance (Days)</th>
+          </tr>
+        </thead>
+        <tbody id="employeeLeaveRecordsBody" aria-live="polite" aria-atomic="true">
+          <!-- Leave record rows -->
+        </tbody>
+      </table>
+      <div id="leaveRecordsDesc" class="sr-only">Summary of leave quota, leaves taken, and balance for each employee.</div>
+    </div>
+  </section>
+
+  <!-- Profile -->
+  <section id="profile" aria-label="User Profile">
+    <h2>Your Profile</h2>
+    <div class="card" id="profileCard" tabindex="0" aria-live="polite" style="font-size:1.15rem;">
+      <p><strong>Name:</strong> <span id="userName">John Doe</span></p>
+      <p><strong>Email:</strong> <span id="userEmail">johndoe@example.com</span></p>
+      <p><strong>Role:</strong> <span id="userRole">Employee</span></p>
+      <p><strong>Leave Quota:</strong> <span id="userQuota">0</span> days</p>
+      <p><strong>Leave Taken:</strong> <span id="userLeaveTaken">0</span> days</p>
+      <p><strong>Leave Balance:</strong> <span id="userLeaveBalance">0</span> days</p>
+      <p><small style="color:#ddd;">* Profile data and leaves stored locally for demo purposes.</small></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  &copy; 2024 Leave Management System. All rights reserved.
+</footer>
+
+<script>
+  (() => {
+    // Storage keys
+    const STORAGE_KEY = "leave_management_data";
+
+    /*
+    Data structure:
+     {
+       employees: [ { id, name, email, role, leaveQuota } ],
+       leaves: [ { id, employeeId, type, startDate, endDate, reason, status } ]
+     }
+    */
+
+    // Demo employees with leave quota days
+    const demoEmployees = [
+      { id: "emp1", name: "John Doe", email: "johndoe@example.com", role: "Employee", leaveQuota: 20 },
+      { id: "emp2", name: "Alice Smith", email: "alice.smith@example.com", role: "Manager", leaveQuota: 25 },
+      { id: "emp3", name: "Bob Johnson", email: "bob.j@example.com", role: "Employee", leaveQuota: 15 }
+    ];
+
+    // Load data
+    const loadData = () => {
+      const dataStr = localStorage.getItem(STORAGE_KEY);
+      if (dataStr) {
+        try {
+          const data = JSON.parse(dataStr);
+          if (!data.employees || !Array.isArray(data.employees)) data.employees = [];
+          if (!data.leaves || !Array.isArray(data.leaves)) data.leaves = [];
+          return data;
+        } catch {
+          return { employees: [], leaves: [] };
+        }
+      }
+      return { employees: [], leaves: [] };
+    };
+
+    // Save data
+    const saveData = (data) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    };
+
+    // Generate unique ID
+    const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+    // Global app data
+    let appData = loadData();
+    if (appData.employees.length === 0) {
+      appData.employees = demoEmployees;
+      saveData(appData);
+    }
+
+    // Elements
+    const navLinks = document.querySelectorAll("nav ul li");
+    const sections = document.querySelectorAll("main section");
+    const selectEmployee = document.getElementById("selectEmployee");
+    const employeeList = document.getElementById("employeeList");
+    const leaveStatusBody = document.getElementById("leaveStatusBody");
+    const totalLeavesElem = document.getElementById("totalLeaves");
+    const approvedLeavesElem = document.getElementById("approvedLeaves");
+    const pendingLeavesElem = document.getElementById("pendingLeaves");
+    const rejectedLeavesElem = document.getElementById("rejectedLeaves");
+    const onLeaveBar = document.getElementById("onLeaveBar");
+    const onLeaveCountElem = document.getElementById("onLeaveCount");
+    const onLeavePercentElem = document.getElementById("onLeavePercent");
+    const pendingApprovalsBody = document.getElementById("pendingApprovalsBody");
+    const employeeLeaveRecordsBody = document.getElementById("employeeLeaveRecordsBody");
+
+    // Profile elements
+    const userNameElem = document.getElementById("userName");
+    const userEmailElem = document.getElementById("userEmail");
+    const userRoleElem = document.getElementById("userRole");
+    const userQuotaElem = document.getElementById("userQuota");
+    const userLeaveTakenElem = document.getElementById("userLeaveTaken");
+    const userLeaveBalanceElem = document.getElementById("userLeaveBalance");
+
+    // Forms
+    const leaveForm = document.getElementById("leaveForm");
+    const employeeForm = document.getElementById("employeeForm");
+
+    // Switch section helper
+    function switchSection(targetId) {
+      sections.forEach(sec => {
+        sec.classList.toggle("active", sec.id === targetId);
+      });
+      navLinks.forEach(li => {
+        li.classList.toggle("active", li.dataset.section === targetId);
+        if (li.dataset.section === targetId) {
+          li.setAttribute("aria-current", "page");
+        } else {
+          li.removeAttribute("aria-current");
+        }
+      });
+      if (navList.classList.contains("open")) {
+        toggleMenu();
+      }
+      // Refresh data on switching sections if needed
+      if(targetId === "approval") {
+        populatePendingApprovals();
+      }
+      if(targetId === "employees") {
+        renderEmployees();
+      }
+      if(targetId === "status") {
+        populateLeaveStatus();
+      }
+      if(targetId === "dashboard") {
+        updateDashboard();
+      }
+      if(targetId === "profile") {
+        renderProfile();
+      }
+      if(targetId === "leave-records") {
+        renderLeaveRecords();
+      }
+    }
+
+    navLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        switchSection(link.dataset.section);
+      });
+      // Keyboard accessible
+      link.addEventListener("keydown", e => {
+        if(e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          switchSection(link.dataset.section);
+        }
+      });
+    });
+
+    // Mobile menu toggle
+    const menuToggle = document.querySelector(".menu-toggle");
+    const navList = document.getElementById("nav-links");
+    function toggleMenu() {
+      navList.classList.toggle("open");
+      const expanded = navList.classList.contains("open");
+      menuToggle.setAttribute("aria-expanded", expanded);
+    }
+    menuToggle.addEventListener("click", toggleMenu);
+    menuToggle.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleMenu();
+      }
+    });
+
+    // Set min attribute of date inputs to today
+    function setDateMinAttributes() {
+      const today = new Date().toISOString().split('T')[0];
+      leaveForm.startDate.setAttribute('min', today);
+      leaveForm.endDate.setAttribute('min', leaveForm.startDate.value || today);
+    }
+    leaveForm.startDate.addEventListener("change", () => {
+      const startVal = leaveForm.startDate.value || new Date().toISOString().split('T')[0];
+      leaveForm.endDate.setAttribute('min', startVal);
+      if (leaveForm.endDate.value < startVal) {
+        leaveForm.endDate.value = startVal;
+      }
+    });
+
+    // Populate employee dropdown for applying leave
+    function populateEmployeeDropdown() {
+      selectEmployee.innerHTML = '<option value="" disabled selected>Select employee</option>';
+      appData.employees.forEach(emp => {
+        const option = document.createElement("option");
+        option.value = emp.id;
+        option.textContent = emp.name + " (" + emp.role + ")";
+        selectEmployee.appendChild(option);
+      });
+    }
+
+    // Render employee cards on Employees page
+    function renderEmployees() {
+      employeeList.innerHTML = "";
+      if (appData.employees.length === 0) {
+        employeeList.textContent = "No employees in the system.";
+        return;
+      }
+      appData.employees.forEach(emp => {
+        const div = document.createElement("div");
+        div.className = "employee-card";
+        div.tabIndex = 0;
+        div.innerHTML = `
+          <strong>${emp.name}</strong>
+          <div class="employee-info"><em>${emp.role}</em></div>
+          <div class="employee-info">${emp.email}</div>
+          <div class="employee-info"><strong>Leave Quota:</strong> ${emp.leaveQuota} days</div>
+        `;
+        employeeList.appendChild(div);
+      });
+    }
+
+    // Render profile info - take first employee as "current user" for demo
+    function renderProfile() {
+      if (appData.employees.length === 0) {
+        userNameElem.textContent = "N/A";
+        userEmailElem.textContent = "N/A";
+        userRoleElem.textContent = "N/A";
+        userQuotaElem.textContent = "0";
+        userLeaveTakenElem.textContent = "0";
+        userLeaveBalanceElem.textContent = "0";
+        return;
+      }
+      const user = appData.employees[0];
+      const leaves = appData.leaves;
+      userNameElem.textContent = user.name;
+      userEmailElem.textContent = user.email;
+      userRoleElem.textContent = user.role;
+      userQuotaElem.textContent = user.leaveQuota;
+
+      const totalLeaveDays = calculateLeaveDaysForEmployee(user.id, "Approved");
+      const balance = Math.max(0, user.leaveQuota - totalLeaveDays);
+      userLeaveTakenElem.textContent = totalLeaveDays;
+      userLeaveBalanceElem.textContent = balance;
+    }
+
+    // Update dashboard statistics
+    function updateDashboard() {
+      const leaves = appData.leaves;
+      const total = leaves.length;
+      const approved = leaves.filter(l => l.status === "Approved").length;
+      const pending = leaves.filter(l => l.status === "Pending").length;
+      const rejected = leaves.filter(l => l.status === "Rejected").length;
+
+      totalLeavesElem.textContent = total;
+      approvedLeavesElem.textContent = approved;
+      pendingLeavesElem.textContent = pending;
+      rejectedLeavesElem.textContent = rejected;
+
+      // Employees on leave today (approved leaves covering today)
+      const todayDate = new Date();
+      const todayStr = todayDate.toISOString().slice(0,10);
+
+      // Find employees on leave today (unique employee count)
+      const employeesOnLeave = new Set();
+      leaves.forEach(l => {
+        if(l.status === "Approved") {
+          if (l.startDate <= todayStr && l.endDate >= todayStr) {
+            employeesOnLeave.add(l.employeeId);
+          }
+        }
+      });
+
+      const count = employeesOnLeave.size;
+      const totalEmployees = appData.employees.length || 1;
+      const percent = Math.round((count / totalEmployees) * 100);
+
+      onLeaveCountElem.textContent = count;
+      onLeavePercentElem.textContent = percent + "%";
+      onLeaveBar.style.width = percent + "%";
+      onLeaveBar.setAttribute("aria-valuenow", percent);
+      onLeaveBar.setAttribute("aria-valuetext", count + " employees on leave out of " + totalEmployees);
+    }
+
+    // Populate Leave Status Table
+    function populateLeaveStatus() {
+      leaveStatusBody.innerHTML = "";
+      if (appData.leaves.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = "No leave applications found.";
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        leaveStatusBody.appendChild(tr);
+        return;
+      }
+      appData.leaves.forEach(leave => {
+        const emp = appData.employees.find(e => e.id === leave.employeeId);
+        const tr = document.createElement("tr");
+
+        const empTd = document.createElement("td");
+        empTd.textContent = emp ? emp.name : "(Unknown)";
+        tr.appendChild(empTd);
+
+        const typeTd = document.createElement("td");
+        typeTd.textContent = leave.type;
+        tr.appendChild(typeTd);
+
+        const startTd = document.createElement("td");
+        startTd.textContent = leave.startDate;
+        tr.appendChild(startTd);
+
+        const endTd = document.createElement("td");
+        endTd.textContent = leave.endDate;
+        tr.appendChild(endTd);
+
+        const reasonTd = document.createElement("td");
+        reasonTd.textContent = leave.reason;
+        tr.appendChild(reasonTd);
+
+        const statusTd = document.createElement("td");
+        statusTd.textContent = leave.status;
+        statusTd.classList.add({
+          "Pending": "status-pending",
+          "Approved": "status-approved",
+          "Rejected": "status-rejected"
+        }[leave.status] || "status-pending");
+        tr.appendChild(statusTd);
+
+        leaveStatusBody.appendChild(tr);
+      });
+    }
+
+    // Populate pending approvals with action buttons
+    function populatePendingApprovals() {
+      pendingApprovalsBody.innerHTML = "";
+      const pendingLeaves = appData.leaves.filter(l => l.status === "Pending");
+      if (pendingLeaves.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = "No pending leave applications.";
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        pendingApprovalsBody.appendChild(tr);
+        return;
+      }
+      pendingLeaves.forEach(leave => {
+        const emp = appData.employees.find(e => e.id === leave.employeeId);
+        const tr = document.createElement("tr");
+
+        const empTd = document.createElement("td");
+        empTd.textContent = emp ? emp.name : "(Unknown)";
+        tr.appendChild(empTd);
+
+        const typeTd = document.createElement("td");
+        typeTd.textContent = leave.type;
+        tr.appendChild(typeTd);
+
+        const startTd = document.createElement("td");
+        startTd.textContent = leave.startDate;
+        tr.appendChild(startTd);
+
+        const endTd = document.createElement("td");
+        endTd.textContent = leave.endDate;
+        tr.appendChild(endTd);
+
+        const reasonTd = document.createElement("td");
+        reasonTd.textContent = leave.reason;
+        tr.appendChild(reasonTd);
+
+        const actionTd = document.createElement("td");
+
+        const approveBtn = document.createElement("button");
+        approveBtn.textContent = "Approve";
+        approveBtn.className = "btn-approve";
+        approveBtn.addEventListener("click", () => {
+          updateLeaveStatus(leave.id, "Approved");
+        });
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent = "Reject";
+        rejectBtn.className = "btn-reject";
+        rejectBtn.addEventListener("click", () => {
+          updateLeaveStatus(leave.id, "Rejected");
+        });
+
+        actionTd.appendChild(approveBtn);
+        actionTd.appendChild(rejectBtn);
+        tr.appendChild(actionTd);
+
+        pendingApprovalsBody.appendChild(tr);
+      });
+    }
+
+    // Update leave status and save + refresh UI
+    function updateLeaveStatus(leaveId, newStatus) {
+      const leave = appData.leaves.find(l => l.id === leaveId);
+      if (!leave) return;
+      leave.status = newStatus;
+      saveData(appData);
+      updateDashboard();
+      populatePendingApprovals();
+      populateLeaveStatus();
+      renderLeaveRecords();
+      if (document.getElementById("approval").classList.contains("active")) {
+        const firstButton = pendingApprovalsBody.querySelector("button");
+        if(firstButton) firstButton.focus();
+      }
+      renderProfile();
+    }
+
+    // Calculate number of days leave (inclusive)
+    function daysBetween(startStr, endStr) {
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      const diffTime = Math.abs(end - start);
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    // Calculate total leave days taken for an employee with a given status (e.g., Approved)
+    function calculateLeaveDaysForEmployee(employeeId, statusFilter="Approved") {
+      return appData.leaves.filter(l => l.employeeId === employeeId && l.status === statusFilter)
+        .reduce((acc, leave) => acc + daysBetween(leave.startDate, leave.endDate), 0);
+    }
+
+    // Render leave records table for employees
+    function renderLeaveRecords() {
+      employeeLeaveRecordsBody.innerHTML = "";
+      if (appData.employees.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.textContent = "No employees to display.";
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        employeeLeaveRecordsBody.appendChild(tr);
+        return;
+      }
+      appData.employees.forEach(emp => {
+        const totalTaken = calculateLeaveDaysForEmployee(emp.id);
+        const balance = Math.max(0, emp.leaveQuota - totalTaken);
+        const tr = document.createElement("tr");
+
+        const nameTd = document.createElement("td");
+        nameTd.textContent = emp.name;
+        tr.appendChild(nameTd);
+
+        const quotaTd = document.createElement("td");
+        quotaTd.textContent = emp.leaveQuota;
+        tr.appendChild(quotaTd);
+
+        const takenTd = document.createElement("td");
+        takenTd.textContent = totalTaken;
+        tr.appendChild(takenTd);
+
+        const balanceTd = document.createElement("td");
+        balanceTd.textContent = balance;
+        tr.appendChild(balanceTd);
+
+        employeeLeaveRecordsBody.appendChild(tr);
+      });
+    }
+
+    // Handle leave application form submission
+    leaveForm.addEventListener("submit", e => {
+      e.preventDefault();
+
+      const employeeId = leaveForm.selectEmployee.value;
+      const leaveType = leaveForm.leaveType.value;
+      const startDate = leaveForm.startDate.value;
+      const endDate = leaveForm.endDate.value;
+      const reason = leaveForm.reason.value.trim();
+
+      if (!employeeId) {
+        alert("Please select an employee.");
+        return;
+      }
+      if (!leaveType) {
+        alert("Please select a leave type.");
+        return;
+      }
+      if (!startDate) {
+        alert("Please select a start date.");
+        return;
+      }
+      if (!endDate) {
+        alert("Please select an end date.");
+        return;
+      }
+      if (startDate > endDate) {
+        alert("End date must be the same or after start date.");
+        return;
+      }
+      if (!reason) {
+        alert("Please provide a reason.");
+        return;
+      }
+
+      // Calculate requested leaves days
+      const requestedDays = daysBetween(startDate, endDate);
+      const employee = appData.employees.find(e => e.id === employeeId);
+      if (!employee) {
+        alert("Selected employee not found.");
+        return;
+      }
+      // Calculate used leaves
+      const usedLeaves = calculateLeaveDaysForEmployee(employeeId, "Approved");
+      // Check quota allowance
+      if (usedLeaves + requestedDays > employee.leaveQuota) {
+        const remaining = Math.max(0, employee.leaveQuota - usedLeaves);
+        if (remaining === 0) {
+          alert(`Employee ${employee.name} has already used all leave quota of ${employee.leaveQuota} days.`);
+        } else {
+          alert(`Leave request exceeds quota. ${employee.name} has only ${remaining} day(s) leave left.`);
+        }
+        return;
+      }
+
+      const newLeave = {
+        id: generateId(),
+        employeeId,
+        type: leaveType,
+        startDate,
+        endDate,
+        reason,
+        status: "Pending"
+      };
+      appData.leaves.push(newLeave);
+      saveData(appData);
+
+      leaveForm.reset();
+      setDateMinAttributes();
+
+      updateDashboard();
+      populateLeaveStatus();
+      renderLeaveRecords();
+
+      switchSection('status');
+      alert("Leave application submitted and is pending approval.");
+    });
+
+    // Handle new employee form submission
+    employeeForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = employeeForm.empName.value.trim();
+      const email = employeeForm.empEmail.value.trim();
+      const role = employeeForm.empRole.value.trim();
+      const quotaStr = employeeForm.empQuota.value.trim();
+
+      if (!name || !email || !role || !quotaStr) {
+        alert("Please fill in all employee fields.");
+        return;
+      }
+      const leaveQuota = parseInt(quotaStr, 10);
+      if (isNaN(leaveQuota) || leaveQuota < 0) {
+        alert("Leave quota must be a positive number.");
+        return;
+      }
+
+      // Check for duplicate email
+      const exists = appData.employees.some(emp => emp.email.toLowerCase() === email.toLowerCase());
+      if (exists) {
+        alert("An employee with this email already exists.");
+        return;
+      }
+
+      const newEmp = {
+        id: generateId(),
+        name,
+        email,
+        role,
+        leaveQuota
+      };
+
+      appData.employees.push(newEmp);
+      saveData(appData);
+      employeeForm.reset();
+
+      populateEmployeeDropdown();
+      renderEmployees();
+      renderLeaveRecords();
+      alert("Employee added successfully.");
+    });
+
+    // Accessibility: hide/show SR only text
+    const style = document.createElement('style');
+    style.innerHTML = ".sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; border: 0 !important; }";
+    document.head.appendChild(style);
+
+    // Initialize app
+    function init() {
+      populateEmployeeDropdown();
+      renderEmployees();
+      renderProfile();
+      updateDashboard();
+      populateLeaveStatus();
+      setDateMinAttributes();
+      populatePendingApprovals();
+      renderLeaveRecords();
+    }
+
+    window.addEventListener("load", init);
+
+  })();
+</script>
+</body>
+</html>
+</content>
+</create_file>
+
